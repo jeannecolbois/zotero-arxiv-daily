@@ -255,8 +255,14 @@ class ArxivRetriever(BaseRetriever):
                 f"Failed to fetch valid arxiv RSS feed from {rss_url} after {retry_num} attempts "
                 f"(status={status}, bozo_exception={bozo_exc})"
             )
-
-        allowed_announce_types = {"new", "cross"} if include_cross_list else {"new"}
+        include_replacements = self.config.source.arxiv.get("include_replacements", False)
+        allowed_announce_types = {"new"}
+        if include_cross_list:
+            allowed_announce_types.add("cross")
+        if include_replacements:
+            allowed_announce_types.add("replace")
+            if include_cross_list:
+                allowed_announce_types.add("replace-cross")
         target_entries = [
             i for i in feed.entries
             if i.get("arxiv_announce_type", "new") in allowed_announce_types
